@@ -7,6 +7,8 @@ import logging
 import uuid
 import aiohttp
 import os # Keep this
+from websockets.server import serve, HTTPResponse
+from websockets.http import Headers
 
 
 # --- Configuration ---
