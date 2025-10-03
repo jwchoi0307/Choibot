@@ -7,7 +7,6 @@ import logging
 import uuid
 import aiohttp
 import os # Keep this
-from websockets.server import serve, HTTPResponse
 from websockets.http import Headers
 
 
@@ -63,7 +62,7 @@ async def http_handler(path, request_headers):
     Otherwise, let the WebSocket handshake continue.
     """
     if path == "/health":
-        return HTTPResponse(200, Headers({"Content-Type": "text/plain"}), b"OK\n")
+        return (200, [("Content-Type", "text/plain")], b"OK\n")
     return None # Let websockets handle the connection as normal
 
 async def ping_self():
@@ -203,7 +202,8 @@ async def start_websocket_server():
     """
     HTTP 요청을 먼저 처리하고, 나머지를 웹소켓으로 넘기는 서버를 시작합니다.
     """
-    async with serve(
+    # --- (수정됨) `serve` 대신 `websockets.serve`를 사용합니다.
+    async with websockets.serve(
         websocket_handler,
         WEBSOCKET_HOST,
         PORT,
