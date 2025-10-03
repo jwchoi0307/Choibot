@@ -7,7 +7,6 @@ import logging
 import uuid
 import aiohttp
 import os # Keep this
-from websockets.http import Headers
 
 
 # --- Configuration ---
@@ -55,15 +54,12 @@ tree = app_commands.CommandTree(client)
 
 from websockets.http import Headers # Make sure this is imported
 
-async def http_handler(path, request_headers):
-    """
-    Handles HTTP health check requests from Fly.io.
-    If the request path is our health check endpoint, return a 200 OK response.
-    Otherwise, let the WebSocket handshake continue.
-    """
-    if path == "/health":
-        return (200, [("Content-Type", "text/plain")], b"OK\n")
-    return None # Let websockets handle the connection as normal
+async def health_check_handler(path: str, request_headers: Headers):
+    method = request_headers.get("Method", "GET")  # method 추출
+    if path == "/health" and method in ("GET", "HEAD"):
+        return 200, Headers(), b"OK\n"
+    return None  # WebSocket 처리로 넘김
+
 
 async def ping_self():
   """
@@ -199,17 +195,15 @@ async def process_minecraft_event(data):
     
 
 async def start_websocket_server():
-    """
-    HTTP 요청을 먼저 처리하고, 나머지를 웹소켓으로 넘기는 서버를 시작합니다.
-    """
-    # --- (수정됨) `serve` 대신 `websockets.serve`를 사용합니다.
+    """Starts the WebSocket server with a custom health check handler."""
+    # This uses an "async with" block to properly manage the server
     async with websockets.serve(
         websocket_handler,
         WEBSOCKET_HOST,
-        PORT,
-        process_request=http_handler
+        INTERNAL_PORT,
+        process_request=health_check_handler  # This is the important new argument
     ):
-        logging.info(f"WebSocket server started on {WEBSOCKET_HOST}:{PORT} and ready for health checks at /healthz.")
+        logging.info(f"WebSocket server started on {WEBSOCKET_HOST}:{INTERNAL_PORT}")
         await asyncio.Future()
 
 # --- Discord Event Handlers ---
