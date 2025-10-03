@@ -54,14 +54,14 @@ tree = app_commands.CommandTree(client)
 
 from websockets.http import Headers # Make sure this is imported
 
-async def health_check_handler(path: str, request_headers: Headers) -> tuple[int, Headers, bytes] | None:
+async def http_handler(path, request_headers):
     """
     Handles HTTP health check requests from Fly.io.
     If the request path is our health check endpoint, return a 200 OK response.
     Otherwise, let the WebSocket handshake continue.
     """
     if path == "/health":
-        return 200, Headers(), b"OK\n"
+        return HTTPResponse(200, Headers({"Content-Type": "text/plain"}), b"OK\n")
     return None # Let websockets handle the connection as normal
 
 async def ping_self():
