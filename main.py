@@ -198,15 +198,16 @@ async def process_minecraft_event(data):
     
 
 async def start_websocket_server():
-    """Starts the WebSocket server with a custom health check handler."""
-    # This uses an "async with" block to properly manage the server
-    async with websockets.serve(
+    """
+    HTTP 요청을 먼저 처리하고, 나머지를 웹소켓으로 넘기는 서버를 시작합니다.
+    """
+    async with serve(
         websocket_handler,
         WEBSOCKET_HOST,
-        INTERNAL_PORT,
-        process_request=health_check_handler  # This is the important new argument
+        PORT,
+        process_request=http_handler
     ):
-        logging.info(f"WebSocket server started on {WEBSOCKET_HOST}:{INTERNAL_PORT}")
+        logging.info(f"WebSocket server started on {WEBSOCKET_HOST}:{PORT} and ready for health checks at /healthz.")
         await asyncio.Future()
 
 # --- Discord Event Handlers ---
