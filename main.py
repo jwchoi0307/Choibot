@@ -22,7 +22,7 @@ WEBHOOK_URL = os.environ.get('WEBHOOK_URL')
 
 # Define a standard internal port. 8080 is a common choice.
 # Fly.io will map public ports (80, 443) to this internal port.
-INTERNAL_PORT = int(os.environ.get('INTERNAL_PORT', 8080))
+PORT = int(os.environ.get('PORT', 8080))
 WEBSOCKET_HOST = "0.0.0.0" # This MUST be 0.0.0.0 to listen inside the container
 
 # Check if essential secrets are loaded
@@ -200,10 +200,10 @@ async def start_websocket_server():
     async with websockets.serve(
         websocket_handler,
         WEBSOCKET_HOST,
-        INTERNAL_PORT,
+        PORT,
         process_request=health_check_handler  # This is the important new argument
     ):
-        logging.info(f"WebSocket server started on {WEBSOCKET_HOST}:{INTERNAL_PORT}")
+        logging.info(f"WebSocket server started on {WEBSOCKET_HOST}:{PORT}")
         await asyncio.Future()
 
 # --- Discord Event Handlers ---
